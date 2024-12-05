@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Spark SmartCompute vs On-prem Render Farm</title>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <!-- Google Fonts: Montserrat -->
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Montserrat', sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #000000;
+            color: white;
+        }
+
+        .logo-container {
+            text-align: center;
+            margin-top: 20px;
+        }
+
+        .logo-container img {
+            max-width: 150px;
+            height: auto;
+        }
+
+        h1 {
+            text-align: center;
+            margin-top: 10px;
+            color: #ffffff;
+            font-size: 20px;
+        }
+
+        form {
+            background-color: #333333;
+            max-width: 600px;
+            margin: 20px auto;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 15px rgba(255, 255, 255, 0.1);
+            border: 2px solid #af69f5;
+        }
+
+        form label {
+            display: block;
+            margin-bottom: 10px;
+            color: #ffffff;
+            font-size: 14px;
+        }
+
+        form input[type="range"] {
+            width: 100%;
+            box-sizing: border-box;
+            margin-bottom: 20px;
+            accent-color: #af69f5; /* Purple color */
+        }
+        
+
+        form select {
+            width: 100%;
+            padding: 10px;
+            background-color: #444444;
+            color: white;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            margin-bottom: 20px;
+        }
+
+        .results {
+            background-color: #333333;
+            border: 2px solid #af69f5;
+            max-width: 600px;
+            margin: 20px auto;
+            padding: 20px;
+            border-radius: 8px;
+            text-align: center;
+        }
+
+        .smartcompute-label {
+            color: #af69f5;
+            font-size: 16px;
+        }
+
+        .results-box {
+            margin-bottom: 20px;
+        }
+
+        @media (max-width: 600px) {
+            form label, form input, form select {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="logo-container">
+        <img src="{{ url_for('static', filename='spark-logo.png') }}" alt="Spark Cloud Studio Logo">
+    </div>
+
+    <h1>Spark SmartCompute vs On-prem Render Farm</h1>
+
+    <form id="calculator-form">
+        <!-- Frames and Minutes/Frame moved to the top -->
+        <div class="form-group">
+            <label for="frames">Frames to render: <span id="frames_value">1500</span></label>
+            <input type="range" id="frames" name="frames" min="100" max="5000" value="1500">
+        </div>
+    
+        <div class="form-group">
+            <label for="minutes_per_frame">Minutes per Frame: <span id="minutes_per_frame_value">30</span></label>
+            <input type="range" id="minutes_per_frame" name="minutes_per_frame" min="1" max="120" value="30">
+        </div>
+    </form>
+    
+    <div class="results-box">
+        <!-- Relocated sliders for On-Prem results -->
+        <form id="on-prem-config-form">
+            <div class="form-group">
+                <label for="num_devs">Number of Render Nodes: <span id="num_devs_value">8</span></label>
+                <input type="range" id="num_devs" name="num_devs" min="1" max="100" value="8">
+            </div>
+    
+            <div class="form-group">
+                <label for="on_prem_cost_per_dev">On-Prem Cost per Node: $<span id="on_prem_cost_per_dev_value">3490</span></label>
+                <input type="range" id="on_prem_cost_per_dev" name="on_prem_cost_per_dev" min="1000" max="12000" value="3490">
+            </div>
+    
+            <div class="form-group">
+                <label for="annual_maint_costs">Annual Maintenance Costs: $<span id="annual_maint_costs_value">12500</span></label>
+                <input type="range" id="annual_maint_costs" name="annual_maint_costs" min="1000" max="30000" value="12500">
+            </div>
+            <div class="results">
+            <p><strong>On-Prem Cost:</strong> $<span id="on_prem_cost">0.00</span></p>
+            <p><strong>On-Prem Render Time:</strong> <span id="time_on_prem">0.00 hours</span></p>
+            </div>
+        </form>
+    
+    </div>
+    
+    <div class="results-box">
+        <!-- Spark-specific inputs relocated -->
+        <form id="spark-config-form">
+            <div class="form-group">
+                <label for="spark_prostation">SmartCompute Node:</label>
+                <select id="spark_prostation" name="spark_prostation">
+                    {% for machine, cost in machine_options.items() %}
+                        <option value="{{ machine }}" {% if machine == default_machine %}selected{% endif %}>
+                            {{ machine }} | ${{ cost }}/hr
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+    
+            <div class="form-group">
+                <label for="smart_compute_nodes">Number of SmartCompute Nodes: 
+                    <span id="smart_compute_nodes_value">100</span> <!-- Add this span -->
+                </label>
+                <input type="range" id="smart_compute_nodes" name="smart_compute_nodes" class="accent" min="10" max="1000" value="100">
+
+            <script>
+                document.getElementById('smart_compute_nodes').addEventListener('input', function () {
+                    document.getElementById('smart_compute_nodes_value').textContent = this.value;
+                });
+            </script>
+                        </div>
+            <div class="results">
+                
+                <p><strong>Spark Cost:</strong> $<span id="cloud_cost">0.00</span></p>
+                <p><strong>Spark Render Time:</strong> <span id="time_spark">0.00 hours</span></p>
+            </div>
+            
+        </form>
+        <!-- Disclaimer Section -->
+        <div style="max-width: 630px; margin: 10px auto; font-size: 10px; color: #6a6a6a; text-align: left; line-height: 12px;">
+            <p>Disclaimer: Costs may vary based on current demand. The prices displayed represent historical averages calculated on Linux-based environments. Costs represent compute only and do not include monthly service fees for farm management, cache infrastructure, or on-demand render licensing. Please contact us at <a href="mailto:ignite@sparkcloud.studio" style="color: #555; text-decoration: underline;">ignite@sparkcloud.studio</a> for pricing tailored to your specific needs.</p>
+        </div>
+
+
+    </div>
+    
+    <script>
+        const machineCosts = {
+            "8 Cores | 32GB RAM | NVIDIA A10": 3490,
+            "16 Cores | 32GB RAM | AMD EPYC 7R13": 1520,
+            "16 Cores | 64GB RAM | NVIDIA A10": 3645,
+            "32 Cores | 64GB RAM | AMD EPYC 7R13": 1700,
+            "32 Cores | 128GB RAM | NVIDIA A10": 4010,
+            "64 Cores | 128GB RAM | AMD EPYC 7R13": 2100,
+        };
+    
+        // Function to synchronize the on-prem cost slider with the dropdown value
+        function initializeOnPremCost() {
+            const selectedMachine = document.getElementById('spark_prostation').value; // Get default selected dropdown value
+            const cost = machineCosts[selectedMachine]; // Fetch corresponding cost from the mapping
+    
+            if (cost) {
+                // Update the slider value
+                const costSlider = document.getElementById('on_prem_cost_per_dev');
+                costSlider.value = cost;
+    
+                // Update the displayed value
+                const costDisplay = document.getElementById('on_prem_cost_per_dev_value');
+                costDisplay.textContent = cost;
+            }
+        }
+    
+        // Initialize values on page load
+        document.addEventListener('DOMContentLoaded', function () {
+            initializeOnPremCost(); // Ensure slider matches dropdown value on load
+        });
+    
+        // Attach event listener to dropdown to update on change
+        document.getElementById('spark_prostation').addEventListener('change', function () {
+            initializeOnPremCost(); // Synchronize the slider with the new dropdown value
+        });
+    
+        // Update displayed value when slider is manually adjusted
+        document.getElementById('on_prem_cost_per_dev').addEventListener('input', function () {
+            document.getElementById('on_prem_cost_per_dev_value').textContent = this.value;
+        });
+    </script>
+    
+    <script>
+        function updateSmartComputeNodesDisplay() {
+        const multiplier = parseInt(document.getElementById('spark_multiplier').value, 10) || 1; // Get multiplier value
+        const numDevs = parseInt(document.getElementById('num_devs').value, 10) || 1; // Get number of developer nodes
+        const totalNodes = numDevs * multiplier; // Calculate total nodes
+
+        // Update the text content for Spark Multiplier
+        const displayElement = document.getElementById('smart_compute_nodes_value');
+        displayElement.textContent = `${multiplier}x [${totalNodes} nodes]`;
+        }
+
+         // Initialize on page load and bind event listeners
+        document.addEventListener('DOMContentLoaded', function () {
+        // Force initialization
+        updateSmartComputeNodesDisplay();
+
+        // Attach listeners to sliders
+        const multiplierSlider = document.getElementById('spark_multiplier');
+        const numDevsSlider = document.getElementById('num_devs');
+
+        multiplierSlider.addEventListener('input', updateSmartComputeNodesDisplay);
+        numDevsSlider.addEventListener('input', updateSmartComputeNodesDisplay);
+        });
+    
+        document.getElementById('frames').addEventListener('input', function() {
+        document.getElementById('frames_value').textContent = this.value;
+        });
+
+        document.getElementById('minutes_per_frame').addEventListener('input', function() {
+            document.getElementById('minutes_per_frame_value').textContent = this.value;
+        });
+
+        document.getElementById('num_devs').addEventListener('input', function() {
+            document.getElementById('num_devs_value').textContent = this.value;
+        });
+
+        document.getElementById('on_prem_cost_per_dev').addEventListener('input', function() {
+            document.getElementById('on_prem_cost_per_dev_value').textContent = this.value;
+        });
+
+        document.getElementById('annual_maint_costs').addEventListener('input', function() {
+            document.getElementById('annual_maint_costs_value').textContent = this.value;
+        });
+    </script>
+    
+    
+    <script>
+    const calculateAndUpdate = () => {
+    let formData = $('#calculator-form, #on-prem-config-form, #spark-config-form').serialize();
+
+
+    $.ajax({
+        type: 'POST',
+        url: '/calculate',
+        data: formData,
+        success: (response) => {
+            $('#on_prem_cost').text(response.on_prem_cost.toFixed(2));
+            $('#time_on_prem').text(response.time_on_prem.toFixed(2) + " hours");
+            $('#cloud_cost').text(response.cloud_cost.toFixed(2));
+            $('#time_spark').text(response.time_spark.toFixed(2) + " hours");
+        },
+        error: () => {
+            alert('An error occurred while calculating costs.');
+        }
+    });
+};
+
+    
+        // Trigger recalculation on input change
+        $('input, select').on('input change', calculateAndUpdate);
+    
+        // Initial calculation on page load
+        $(document).ready(() => {
+            calculateAndUpdate();
+        });
+    </script>
+
+
+    
+</body>
+</html>
