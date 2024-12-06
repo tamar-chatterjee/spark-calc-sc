@@ -174,7 +174,7 @@
         </form>
         <!-- Disclaimer Section -->
         <div style="max-width: 630px; margin: 10px auto; font-size: 10px; color: #6a6a6a; text-align: left; line-height: 12px;">
-            <p>Disclaimer: Costs may vary based on current demand. The prices displayed represent historical averages calculated on Linux-based environments. Costs represent compute only and do not include monthly service fees for farm management, cache infrastructure, or on-demand render licensing. Please contact us at <a href="mailto:ignite@sparkcloud.studio" style="color: #555; text-decoration: underline;">ignite@sparkcloud.studio</a> for pricing tailored to your specific needs.</p>
+            <p>Costs may vary based on current demand. The prices displayed represent historical averages calculated on Linux-based environments. Costs represent compute only and do not include monthly service fees for farm management, cache infrastructure, or on-demand render licensing. Please contact us at <a href="mailto:ignite@sparkcloud.studio" style="color: #555; text-decoration: underline;">ignite@sparkcloud.studio</a> for pricing tailored to your specific needs.</p>
         </div>
 
 
@@ -279,7 +279,7 @@
         data: formData,
         success: (response) => {
             $('#on_prem_cost').text(response.on_prem_cost.toFixed(2));
-            $('#time_on_prem').text(response.time_on_prem.toFixed(2) + " hours");
+            $('#time_on_prem').text(response.time_on_prem);
             $('#cloud_cost').text(response.cloud_cost.toFixed(2));
             $('#time_spark').text(response.time_spark.toFixed(2) + " hours");
         },

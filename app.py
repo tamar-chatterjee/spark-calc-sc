@@ -50,9 +50,14 @@ def calculate():
     spark_time = compute_hours / smart_compute_nodes
     spark_cost = smart_compute_nodes * spark_time * machine_cost_per_hour
 
+    time_on_prem_display = f"{on_prem_time:.2f} hours"
+    if on_prem_time > 72:
+        days = int(on_prem_time // 24)
+        time_on_prem_display += f" [ {days} days ]"
+
     return jsonify({
         'on_prem_cost': total_on_prem_cost,
-        'time_on_prem': on_prem_time,
+        'time_on_prem': time_on_prem_display,
         'cloud_cost': spark_cost,
         'time_spark': spark_time
     })
